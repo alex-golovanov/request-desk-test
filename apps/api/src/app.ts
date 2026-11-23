@@ -28,6 +28,7 @@ const entrySchema = t.Object({
   createdAt: t.String(),
   outcome: outcomeSchema,
 });
+const requestBody = t.Object({ text: t.String({ minLength: 1, pattern: "\\S" }) });
 
 export function createApp(generate: DraftProvider = generateDemoDraft) {
   const store = createHistoryStore(demoHistory());
@@ -42,8 +43,12 @@ export function createApp(generate: DraftProvider = generateDemoDraft) {
       headers: sessionHeaders,
       response: { 200: t.Array(entrySchema) },
     })
+    .post("/triage", ({ body }) => triage(body.text.trim(), generate), {
+      body: requestBody,
+      response: { 200: outcomeSchema },
+    })
     .post(
-      "/triage",
+      "/requests",
       async ({ body, headers }) => {
         const text = body.text.trim();
         const entry = {
@@ -57,7 +62,7 @@ export function createApp(generate: DraftProvider = generateDemoDraft) {
       },
       {
         headers: sessionHeaders,
-        body: t.Object({ text: t.String({ minLength: 1, maxLength: 8_000, pattern: "\\S" }) }),
+        body: requestBody,
         response: { 200: entrySchema },
       },
     );

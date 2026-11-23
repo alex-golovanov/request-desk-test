@@ -3,7 +3,7 @@ import { createHistoryStore, demoHistory, type HistoryEntry } from "./history";
 import { generateDemoDraft, triage } from "./triage";
 
 test("returns a nonblank draft for a recognized topic", async () => {
-  const result = await triage("Could you confirm our delivery window?", generateDemoDraft);
+  const result = await triage("Когда будет доставка?", generateDemoDraft);
   expect(result).toEqual({ status: "ready", topic: "delivery", draft: expect.any(String) });
   expect(result.draft?.trim()).toBeTruthy();
 });

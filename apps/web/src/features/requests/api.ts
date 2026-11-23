@@ -21,7 +21,7 @@ export function createRequestClient(origin: string | App, sessionId: string) {
 
   return {
     history: () => api.history.get(session),
-    draft: (text: string) => api.triage.post({ text }, session),
+    draft: (text: string) => api.requests.post({ text }, session),
   };
 }
 

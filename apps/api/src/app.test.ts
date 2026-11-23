@@ -8,7 +8,7 @@ test("validates submitted text and keeps results in the submitting session", asy
 
   function submit(body: string) {
     return app.handle(
-      new Request("http://localhost/api/triage", {
+      new Request("http://localhost/api/requests", {
         method: "POST",
         body,
         headers: { "Content-Type": "application/json", "x-request-session": session },
@@ -40,4 +40,39 @@ test("validates submitted text and keeps results in the submitting session", asy
   expect(entry.outcome).toEqual({ status: "manual_review", topic: null, draft: null });
   expect((await history(session))[0]).toEqual(entry);
   expect((await history(otherSession)).some(({ id }) => id === entry.id)).toBe(false);
+});
+
+test("the assignment endpoint validates input and returns the specified model outcomes", async () => {
+  const app = createApp();
+  function submit(body: string) {
+    return app.handle(
+      new Request("http://localhost/api/triage", {
+        method: "POST",
+        body,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+  }
+
+  for (const body of ["{", "{}", '{"text":5}', '{"text":"  "}']) {
+    const response = await submit(body);
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ status: "invalid_input" });
+  }
+
+  const ready = await submit(JSON.stringify({ text: "Когда будет доставка?" }));
+  expect(ready.status).toBe(200);
+  expect(await ready.json()).toEqual({
+    status: "ready",
+    topic: "delivery",
+    draft: "Спасибо за обращение. Уточним детали заявки.",
+  });
+
+  for (const marker of ["[error]", "[bad-json]", "[bad-topic]", "[empty-draft]", "[timeout]"]) {
+    const start = performance.now();
+    const response = await submit(JSON.stringify({ text: marker }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ status: "manual_review", topic: null, draft: null });
+    if (marker === "[timeout]") expect(performance.now() - start).toBeLessThan(950);
+  }
 });

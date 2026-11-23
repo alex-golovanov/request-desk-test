@@ -23,6 +23,8 @@ bun run check
 
 This runs TypeScript checks, Oxlint, Oxfmt in check mode, and the Bun tests. Run `bun run format` to apply formatting.
 
+To run the failure and API contract tests alone, use `bun test apps/api/src`.
+
 ## Run the built app
 
 ```sh
@@ -31,6 +33,10 @@ bun run start
 ```
 
 Open [http://127.0.0.1:3000](http://127.0.0.1:3000). One Bun process serves the built web app and the API. The demo uses a deterministic provider and resets its in-memory history on restart.
+
+`POST /api/triage` accepts `{ "text": "..." }` and returns the outcome specified in the exercise. The interface uses `POST /api/requests` to also record the result in session history. Both endpoints use the supplied `mock-ai.mjs` unchanged.
+
+The draft gives a manager a starting point for a reply. Its benefit can be measured by comparing median handling time on similar requests with and without the assistant.
 
 ## Workspaces
 

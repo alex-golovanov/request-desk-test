@@ -1,5 +1,4 @@
-import { setTimeout as delay } from "node:timers/promises";
-import { exampleDrafts } from "./demo-copy";
+import { classify } from "../../../mock-ai.mjs";
 
 export const topics = ["delivery", "pricing", "other"] as const;
 export type Topic = (typeof topics)[number];
@@ -54,18 +53,4 @@ export async function triage(text: string, generate: DraftProvider): Promise<Out
   }
 }
 
-export const generateDemoDraft: DraftProvider = async (text, signal) => {
-  const input = text.toLowerCase();
-  if (input.includes("[timeout]")) await delay(1_000, undefined, { signal });
-  if (input.includes("[error]")) throw new Error("Demo provider error");
-  if (input.includes("[bad-json]")) return "invalid JSON";
-
-  let topic: Topic = "other";
-  if (/\b(delivery|shipment|tracking|arrive|shipping)\b|достав/.test(input)) topic = "delivery";
-  if (/\b(price|pricing|quote|cost|discount)\b|цен|стоим/.test(input)) topic = "pricing";
-
-  return JSON.stringify({
-    topic: input.includes("[bad-topic]") ? "unknown" : topic,
-    draft: input.includes("[empty-draft]") ? "   " : exampleDrafts[topic],
-  });
-};
+export const generateDemoDraft: DraftProvider = (text, signal) => classify(text, { signal });
