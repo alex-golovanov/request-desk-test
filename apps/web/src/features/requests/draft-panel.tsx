@@ -1,8 +1,9 @@
-import { Clipboard, LoaderCircle, TriangleAlert } from "lucide-react";
+import { Clipboard, LoaderCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { uiCopy } from "@/copy";
+import { cn } from "@/lib/cn";
 import { OutcomeLabel } from "./recent-requests";
 import type { RequestState } from "./state";
 
@@ -38,7 +39,7 @@ function ReadyReply({ reply, onChangeReply }: ReplyProps) {
 
   return (
     <>
-      <div id="reply-content" className="mt-3 flex flex-1 flex-col">
+      <div id="reply-content" className="mt-4 flex flex-1 flex-col">
         {editing ? (
           <Textarea
             aria-labelledby="reply-heading"
@@ -48,18 +49,24 @@ function ReadyReply({ reply, onChangeReply }: ReplyProps) {
               setCopyFeedback(undefined);
               onChangeReply(event.target.value);
             }}
-            className="min-h-40 flex-1 bg-draft font-serif text-[17px] leading-[1.55] [field-sizing:content]"
+            className="min-h-32 flex-1 bg-field font-serif text-base leading-[1.65] [field-sizing:content] sm:text-sm"
           />
         ) : (
-          <div className="flex-1 rounded-lg border border-transparent bg-draft px-3.5 py-3">
-            <p className="max-w-[55ch] font-serif text-[17px] leading-[1.55] wrap-break-word whitespace-pre-wrap">
+          <div className="flex-1">
+            <p className="max-w-[70ch] font-serif text-sm leading-[1.7] wrap-break-word whitespace-pre-wrap">
               {reply.trim() ? reply : uiCopy.reply.empty}
             </p>
           </div>
         )}
       </div>
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-        <p role="status" className="text-xs leading-5 text-muted-foreground">
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-t border-border pt-3">
+        <p
+          role="status"
+          className={cn(
+            "text-[13px] leading-5",
+            copyFeedback === "copied" ? "text-success-foreground" : "text-muted-foreground",
+          )}
+        >
           {copyFeedback === "copied"
             ? uiCopy.reply.copied
             : copyFeedback === "select"
@@ -95,42 +102,38 @@ export function DraftPanel({ state, onChangeReply }: DraftPanelProps) {
     <section
       aria-labelledby="reply-heading"
       aria-busy={pending}
-      className="flex min-w-0 flex-col border-t border-border p-4 sm:p-6 lg:border-t-0 lg:border-l"
+      className={cn(
+        "flex min-w-0 flex-col rounded-2xl border border-border bg-card px-4 py-4 sm:px-5 sm:py-5",
+      )}
     >
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 id="reply-heading" tabIndex={-1} className="text-sm leading-5 font-semibold">
+      <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border pb-3">
+        <h2 id="reply-heading" tabIndex={-1} className="text-[15px] leading-5 font-semibold">
           {uiCopy.reply.heading}
         </h2>
-        {outcome && <OutcomeLabel outcome={outcome} />}
+        {outcome?.status === "ready" && <OutcomeLabel outcome={outcome} />}
       </div>
       {state.active && outcome?.status === "ready" ? (
         <ReadyReply key={state.active.id} reply={state.reply} onChangeReply={onChangeReply} />
-      ) : (
+      ) : !pending && outcome?.status === "manual_review" ? (
         <div
           role="status"
-          className="mt-3 flex min-h-24 flex-1 items-start gap-2 rounded-lg bg-draft px-3.5 py-3 text-sm leading-6 lg:min-h-40"
+          className="mt-4 rounded-xl bg-caution-surface px-3 py-2.5 text-sm leading-6"
         >
+          <p className="font-semibold text-caution-foreground">{uiCopy.reply.manual}</p>
+          <p className="text-muted-foreground">{uiCopy.reply.manualDetails}</p>
+        </div>
+      ) : (
+        <div role="status" className="relative mt-3 text-sm leading-6">
           {pending ? (
             <>
               <LoaderCircle
                 aria-hidden="true"
-                className="mt-1.5 size-3 shrink-0 animate-spin text-muted-foreground motion-reduce:animate-none"
+                className="absolute top-1.5 right-0 size-3 animate-spin text-muted-foreground motion-reduce:animate-none"
               />
               <p className="text-muted-foreground">{uiCopy.reply.drafting}</p>
             </>
-          ) : outcome?.status === "manual_review" ? (
-            <>
-              <TriangleAlert
-                aria-hidden="true"
-                className="mt-1.5 size-3 shrink-0 text-caution-foreground"
-              />
-              <div>
-                <p className="font-semibold">{uiCopy.reply.manual}</p>
-                <p className="text-muted-foreground">{uiCopy.reply.manualDetails}</p>
-              </div>
-            </>
           ) : (
-            <p className="text-muted-foreground">{uiCopy.reply.waiting}</p>
+            <p>{uiCopy.reply.waiting}</p>
           )}
         </div>
       )}

@@ -1,39 +1,56 @@
 @import "tailwindcss";
 @import "./fonts/faces.css";
 
+/* Match the text inset of the message fields: px-2.5 plus the 1 px border. */
+@utility px-message-content {
+  padding-inline: calc(var(--spacing) * 2.5 + 1px);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
+  --color-composer: var(--composer);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
+  --color-field: var(--field);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-accent: var(--accent);
+  --color-info: var(--info);
   --color-draft: var(--draft);
   --color-ring: var(--ring);
+  --color-caution-surface: var(--caution-surface);
   --color-caution-foreground: var(--caution-foreground);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success-foreground: var(--success-foreground);
   --font-sans: "Golos Text", system-ui, sans-serif;
   --font-serif: "Literata", Georgia, serif;
 }
 
 :root {
   color-scheme: light dark;
-  --background: light-dark(#f4f2ed, #181816);
-  --foreground: light-dark(#262521, #eeece6);
-  --card: light-dark(#fffefa, #21211e);
-  --muted: light-dark(#eeebe3, #2c2b26);
-  --muted-foreground: light-dark(#625e54, #b9b3a5);
-  --border: light-dark(#ddd8cd, #3b3932);
-  --input: light-dark(#928c7f, #7a7568);
-  --primary: light-dark(#2b2a25, #efeadd);
-  --primary-foreground: light-dark(#fffefa, #26241f);
-  --accent: light-dark(#e9e4d8, #38352b);
-  --draft: light-dark(#f7f4eb, #2a2821);
-  --ring: light-dark(#735732, #dcc58f);
-  --caution-foreground: light-dark(#8a4c17, #efb67e);
+  --background: light-dark(#f5f6f8, #1f2428);
+  --foreground: light-dark(#232831, #edf1f5);
+  --card: light-dark(#ffffff, #272d32);
+  --composer: light-dark(#eaf0fa, #272d32);
+  --muted: light-dark(#edf0f3, #333b42);
+  --muted-foreground: light-dark(#515a65, #b0bac3);
+  --border: light-dark(#dce1e7, #3d464e);
+  --input: light-dark(#838f9c, #697580);
+  --field: light-dark(#ffffff, #21262b);
+  --primary: light-dark(#22262c, #f1cf51);
+  --primary-foreground: light-dark(#ffffff, #271f05);
+  --accent: light-dark(#eaf2fb, #2a3c4c);
+  --info: light-dark(#22598b, #acd7ff);
+  --draft: light-dark(#f4f6f8, #1d2226);
+  --ring: light-dark(#285e9b, #f1cf51);
+  --caution-surface: light-dark(#fff5de, #362f22);
+  --caution-foreground: light-dark(#81501a, #efca84);
+  --destructive-foreground: light-dark(#a5293a, #ff9aa5);
+  --success-foreground: light-dark(#236344, #9adab3);
 }
 
 :root[data-theme="light"] {

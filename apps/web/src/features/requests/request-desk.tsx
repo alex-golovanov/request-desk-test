@@ -1,6 +1,6 @@
 import type { HistoryEntry } from "@neowise/api";
-import { ArrowRight } from "lucide-react";
-import { useEffect, useReducer, useRef, useState, type FormEvent } from "react";
+import { ArrowRight, CircleAlert, CornerDownLeft, MessagesSquare } from "lucide-react";
+import { useEffect, useReducer, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { ThemeControl } from "@/components/theme-control";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,6 +18,9 @@ export function RequestDesk() {
   const submissionCount = useRef(0);
   const pending = state.pending !== null;
   const hasDraft = state.active?.outcome.status === "ready";
+  const invalidInput = Boolean(state.error && !state.text.trim());
+  const hasCurrentManualReview =
+    state.active?.outcome.status === "manual_review" && state.active.text === state.text.trim();
 
   useEffect(() => {
     let active = true;
@@ -66,6 +69,16 @@ export function RequestDesk() {
     document.getElementById("reply-heading")?.focus();
   }
 
+  function submitFromKeyboard(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key !== "Enter" || event.shiftKey || event.altKey || event.nativeEvent.isComposing) {
+      return;
+    }
+    if (!event.ctrlKey && !event.metaKey && matchMedia("(pointer: coarse)").matches) return;
+
+    event.preventDefault();
+    if (!event.repeat && !pending) event.currentTarget.form?.requestSubmit();
+  }
+
   return (
     <>
       <a
@@ -74,57 +87,82 @@ export function RequestDesk() {
       >
         {uiCopy.skipLink}
       </a>
-      <header className="mx-auto max-w-6xl px-4 sm:px-8">
+      <header className="mx-auto max-w-4xl px-4 sm:px-8">
         <div className="flex min-h-14 items-center justify-between gap-3 border-b border-border">
-          <span className="text-sm font-semibold tracking-[-0.02em]">{uiCopy.product}</span>
+          <h1 className="flex items-center gap-2 text-[15px] font-semibold tracking-[-0.025em] sm:pl-1">
+            <MessagesSquare aria-hidden="true" className="size-5 shrink-0" />
+            {uiCopy.product}
+          </h1>
           <ThemeControl />
         </div>
       </header>
-      <main id="workspace" className="mx-auto max-w-6xl px-4 pt-7 pb-12 sm:px-8 sm:pt-10">
-        <header className="mb-5 sm:mb-6">
-          <h1 className="text-[1.75rem] leading-[1.12] font-semibold tracking-[-0.045em] sm:text-4xl">
-            {uiCopy.heading}
-          </h1>
-        </header>
-
-        <div className="grid rounded-xl border border-border bg-card lg:grid-cols-[minmax(0,0.94fr)_minmax(0,1.06fr)]">
-          <form onSubmit={submit} className="flex min-w-0 flex-col p-4 sm:p-6">
-            <label htmlFor="request-text" className="text-sm leading-5 font-semibold">
+      <main id="workspace" className="mx-auto max-w-4xl px-4 pt-6 pb-12 sm:px-8 sm:pt-8">
+        <div className="space-y-6">
+          <form onSubmit={submit} className="min-w-0">
+            <label
+              htmlFor="request-text"
+              className="mb-3 block px-5 text-[15px] leading-5 font-semibold"
+            >
               {uiCopy.request.label}
             </label>
-            <Textarea
-              id="request-text"
-              name="text"
-              value={state.text}
-              placeholder={uiCopy.request.placeholder}
-              onChange={(event) => dispatch({ type: "changeText", text: event.target.value })}
-              maxLength={8_000}
-              aria-invalid={Boolean(state.error && !state.text.trim())}
-              aria-describedby={state.error ? "request-error" : undefined}
-              className="mt-3 min-h-24 max-h-80 [field-sizing:content] sm:text-[15px] lg:min-h-40 lg:flex-1"
-            />
-            {state.error && (
-              <p id="request-error" role="alert" className="mt-2 text-sm text-caution-foreground">
-                {state.error}
-              </p>
-            )}
-            <div className="mt-auto flex flex-wrap items-center gap-2 pt-3">
-              <Button
-                variant="ghost"
-                aria-label={uiCopy.request.useSampleLabel}
-                onClick={() => dispatch({ type: "changeText", text: uiCopy.request.sample })}
-              >
-                {uiCopy.request.useSample}
-              </Button>
-              <Button
-                type="submit"
-                variant={hasDraft ? "outline" : "primary"}
-                className="ml-auto"
-                disabled={pending}
-              >
-                {pending ? uiCopy.request.pending : uiCopy.request.submit}
-                <ArrowRight aria-hidden="true" />
-              </Button>
+            <div className="rounded-2xl border border-border bg-card p-1.5 focus-within:border-input">
+              <Textarea
+                id="request-text"
+                name="text"
+                value={state.text}
+                placeholder={uiCopy.request.placeholder}
+                onChange={(event) => dispatch({ type: "changeText", text: event.target.value })}
+                onKeyDown={submitFromKeyboard}
+                maxLength={8_000}
+                aria-invalid={invalidInput}
+                aria-describedby={
+                  state.error ? "request-keyboard-hint request-error" : "request-keyboard-hint"
+                }
+                className="min-h-28 max-h-80 resize-y border-transparent bg-transparent px-3 py-2.5 [field-sizing:content] focus-visible:outline-0 sm:text-[15px]"
+              />
+              <span id="request-keyboard-hint" className="sr-only">
+                {uiCopy.request.keyboardHint}
+              </span>
+              {state.error && (
+                <p
+                  id="request-error"
+                  role="alert"
+                  className="relative mx-3 mt-1 text-sm leading-5 font-medium text-destructive-foreground"
+                >
+                  <CircleAlert aria-hidden="true" className="absolute top-1 -left-4 size-3" />
+                  {state.error}
+                </p>
+              )}
+              <div className="flex flex-wrap items-center gap-2 border-t border-border px-1.5 pt-1.5">
+                <Button
+                  variant="ghost"
+                  aria-label={uiCopy.request.useSampleLabel}
+                  onClick={() => dispatch({ type: "changeText", text: uiCopy.request.sample })}
+                >
+                  {uiCopy.request.useSample}
+                </Button>
+                <Button
+                  type="submit"
+                  variant={
+                    hasDraft || invalidInput || hasCurrentManualReview ? "outline" : "primary"
+                  }
+                  className="ml-auto"
+                  disabled={pending}
+                >
+                  {pending ? uiCopy.request.pending : uiCopy.request.submit}
+                  <kbd
+                    aria-hidden="true"
+                    title={uiCopy.request.keyboardHint}
+                    className="hidden size-[18px] shrink-0 place-items-center rounded border border-current/25 sm:inline-grid [@media(pointer:coarse)]:hidden"
+                  >
+                    <CornerDownLeft />
+                  </kbd>
+                  <ArrowRight
+                    aria-hidden="true"
+                    className="sm:hidden [@media(pointer:coarse)]:block"
+                  />
+                </Button>
+              </div>
             </div>
           </form>
           <DraftPanel
