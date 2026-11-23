@@ -1,0 +1,25 @@
+{
+  "name": "request-desk",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --parallel --filter '@neowise/*' dev",
+    "build": "bun run --filter @neowise/web build",
+    "start": "bun apps/api/src/server.ts",
+    "typecheck": "bun --bun tsc -p apps/api/tsconfig.json && bun --bun tsc -p apps/web/tsconfig.json",
+    "lint": "bun --bun oxlint --deny-warnings",
+    "format": "bun --bun oxfmt",
+    "format:check": "bun --bun oxfmt --check",
+    "check": "bun run typecheck && bun run lint && bun run format:check && bun test"
+  },
+  "devDependencies": {
+    "@types/bun": "1.4.5",
+    "@types/node": "26.6.6",
+    "oxfmt": "0.79.0",
+    "oxlint": "1.94.0",
+    "typescript": "7.0.2"
+  }
+}
