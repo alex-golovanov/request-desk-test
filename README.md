@@ -1,29 +1,40 @@
-# Тестовое Neowise. AI-помощник для входящих заявок
+# Request Desk
 
-Ориентир — 45–60 минут. Менеджер вводит текст заявки, получает тему и черновик ответа. Он читает результат и сам решает, что отправить клиенту.
+Paste a customer request to get a topic and an editable reply draft. Recent requests reopen the original message and the outcome that belongs to it. The demo remembers the latest five completed requests per browser session while the API is running.
 
-## Запуск
+## Start locally
 
-В репозитории есть сервер, HTML-страница и имитатор модели. Нужен Node.js 20 или новее. Зависимостей и ключей нет.
+Use Bun 1.4 or later. From the repository root, run:
 
 ```sh
-node server.mjs
+bun install --frozen-lockfile --ignore-scripts
+bun run dev
 ```
 
-Откройте http://127.0.0.1:3000. Порт можно задать через переменную `PORT`.
+Open [http://127.0.0.1:5173](http://127.0.0.1:5173). Vite serves the web app and proxies API calls to Elysia on port 3000. Set `WEB_PORT` or `API_PORT` if either port is in use.
 
-## Что изменить
+Select **Пример**, then **Составить ответ**. Try `[timeout]`, `[error]`, `[bad-json]`, `[bad-topic]`, or `[empty-draft]` to see manual review. Select a row in **Недавние заявки** to reopen that request. The theme control follows the system by default and can save an explicit light or dark preference.
 
-1. Доработайте `POST /api/triage`. Принимайте JSON с полем `text`, содержащим непустую строку. При пустом, отсутствующем, нестроковом вводе или битом JSON верните HTTP 400 и `{"status":"invalid_input"}`.
-2. При корректном ответе модели верните HTTP 200 и `{"status":"ready","topic":"…","draft":"…"}`. Допустимые темы — `delivery`, `pricing`, `other`. Черновик должен быть непустой строкой. При таймауте, ошибке модели или неподходящем ответе верните HTTP 200 и `{"status":"manual_review","topic":null,"draft":null}`. Ограничьте ожидание модели 300 мс. Оставьте поведение выданного имитатора прежним.
-3. Покажите на странице тему и черновик при успехе. Для `manual_review` покажите понятное сообщение менеджеру и очистите предыдущий черновик. Добавьте хотя бы один исполнимый тест для поведения при сбое и инструкцию его запуска.
+## Check changes
 
-Для локальной проверки имитатор принимает любой обычный текст. Метки `[timeout]`, `[error]`, `[bad-json]`, `[bad-topic]`, `[empty-draft]` включают отдельные сценарии сбоя.
+```sh
+bun run check
+```
 
-## Что прислать в бота
+This runs TypeScript checks, Oxlint, Oxfmt in check mode, and the Bun tests. Run `bun run format` to apply formatting.
 
-- Ссылку на pull request и SHA проверяемого коммита. Можно использовать свой учебный репозиторий. Сохраните начальный код первым коммитом, затем откройте PR из отдельной ветки.
-- Короткую инструкцию запуска и прогона теста. В описании PR ответьте, где проверяется результат AI, что происходит при сбое, какой AI вы использовали и что проверили самостоятельно. Если работали без AI, укажите это.
-- Одну фразу о том, какую пользу задача даёт менеджеру и как её можно измерить.
+## Run the built app
 
-После сдачи бот может задать один-два коротких вопроса по вашему коду. Используйте учебные данные. Если не уложились по времени, отметьте незавершённые части в PR.
+```sh
+bun run build
+bun run start
+```
+
+Open [http://127.0.0.1:3000](http://127.0.0.1:3000). One Bun process serves the built web app and the API. The demo uses a deterministic provider and resets its in-memory history on restart.
+
+## Workspaces
+
+- `apps/web` contains the React workbench, shadcn/ui-style primitives, and Tailwind theme tokens.
+- `apps/api` owns validation, the 300 ms provider deadline, and the history store. The web client uses Eden Treaty to infer the API types.
+- Edit Russian interface copy in `apps/web/src/copy.ts` and demo requests and replies in `apps/api/src/demo-copy.ts`.
+- The web build serves [Golos Text](https://github.com/google/fonts/tree/main/ofl/golostext) and [Literata](https://github.com/google/fonts/tree/main/ofl/literata) locally. Their SIL Open Font License files are in `apps/web/src/fonts`.
